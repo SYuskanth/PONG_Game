@@ -1,0 +1,13 @@
+{
+  "Lua.diagnostics.globals": ["love"],
+  "Lua.workspace.library": [
+    // For Windows - Notice the double backslashes \\
+    "C:\\Program Files\\LOVE"
+
+    // For MacOS
+    // "/Applications/love.app/Contents/Resources",
+
+    // For Linux (example path)
+    // "/usr/share/love/"
+  ]
+}
