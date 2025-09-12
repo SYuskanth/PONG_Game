@@ -31,7 +31,7 @@ function love.load()
     BallX = VIRTUAL_WIDTH / 2 - 2
     BallY = VIRTUAL_HEIGHT / 2 - 2
     -- faster speed so it's visible
-    BallDX = math.random(2) == 1 and -200 or 200
+    BallDX = math.random(2) == 1 and 100 or -100
     BallDY = math.random(-60, 60)
 
     GameState = 'start'
@@ -70,7 +70,7 @@ function love.keypressed(key)
             -- reset ball position and speed
             BallX = VIRTUAL_WIDTH / 2 - 2
             BallY = VIRTUAL_HEIGHT / 2 - 2
-            BallDX = math.random(2) == 1 and 200 or -200
+            BallDX = math.random(2) == 1 and -100 or 100
             BallDY = math.random(-60, 60)
         end
     end
