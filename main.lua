@@ -12,10 +12,15 @@ VIRTUAL_HEIGHT = 243
 
 PADDLE_SPEED = 200
 
-function love.load()
-    love.graphics.setDefaultFilter('nearest', 'nearest')
+function love.load() -- all initial setup happen
+    -- CHANGED: Use 'linear' filtering for smoother image scaling
+    love.graphics.setDefaultFilter('linear', 'linear')
+    
     love.window.setTitle('Pong')
-    math.randomseed(os.time())
+    math.randomseed(os.time())  -- this is have the pattern this is not the random
+
+    -- NEW: Load the background image from the file into a variable
+    backgroundImage = love.graphics.newImage('background.png')
 
     SmallFont = love.graphics.newFont('Press_Start_2P/PressStart2P-Regular.ttf', 8)
     ScoreFont = love.graphics.newFont('Press_Start_2P/PressStart2P-Regular.ttf', 32)
@@ -30,8 +35,11 @@ function love.load()
     Player1Score = 0
     Player2Score = 0
 
-    Player1 = Paddle(10, 30, 5, 20)
-    Player2 = Paddle(VIRTUAL_WIDTH - 15, VIRTUAL_HEIGHT - 50, 5, 20)
+    -- Initialize paddles with distinct colors
+    Player1 = Paddle(10, 30, 5, 20, {95/255, 211/255, 142/255, 1}) -- Green paddle
+    Player2 = Paddle(VIRTUAL_WIDTH - 15, VIRTUAL_HEIGHT - 50, 5, 20, {217/255, 87/255, 99/255, 1}) -- Red paddle
+    
+    -- The Ball will now pick its own random color when it's created
     Ball = Ball(VIRTUAL_WIDTH / 2 - 2, VIRTUAL_HEIGHT / 2 - 2, 4, 4)
 
     servingPlayer = 1
@@ -110,6 +118,7 @@ function love.update(dt)
     if love.keyboard.isDown('up') then
         Player2.dy = -PADDLE_SPEED
     elseif love.keyboard.isDown('down') then
+        -- FIXED: Corrected the typo from PADDE_SPEED to PADDLE_SPEED
         Player2.dy = PADDLE_SPEED
     else
         Player2.dy = 0
@@ -143,7 +152,17 @@ end
 
 function love.draw()
     Push:start()
-    love.graphics.clear(40/255, 45/255, 52/255, 1)
+    
+    -- We no longer need to clear to a solid color, as the background will cover the screen
+    -- love.graphics.clear(40/255, 45/255, 52/255, 1)
+
+    -- CHANGED: Calculate scale factors to make the background perfectly fit the virtual screen size.
+    local scaleX = VIRTUAL_WIDTH / backgroundImage:getWidth()
+    local scaleY = VIRTUAL_HEIGHT / backgroundImage:getHeight()
+
+    -- Draw the background image with the calculated scale.
+    -- This fixes any stretching issues and makes it fit the "small screen".
+    love.graphics.draw(backgroundImage, 0, 0, 0, scaleX, scaleY)
 
     love.graphics.setFont(SmallFont)
     if GameState == 'start' then
@@ -175,3 +194,4 @@ function displayFPS()
     love.graphics.print('FPS: ' .. tostring(love.timer.getFPS()), 10, 10)
     love.graphics.setColor(1, 1, 1, 1)
 end
+
