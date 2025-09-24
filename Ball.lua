@@ -6,7 +6,7 @@ function Ball:init(x, y, width, height)
     self.width = width
     self.height = height
     
-    -- A table of nice colors for the ball to cycle through
+    -- colors for the ball 
     self.colors = {
         {217/255, 87/255, 99/255, 1},   -- red
         {95/255, 211/255, 142/255, 1},  -- green
@@ -27,8 +27,6 @@ function Ball:update(dt)
     self.y = self.y + self.dy * dt
 end
 
--- I noticed you had two 'reset' functions in your original file. 
--- I've merged them into this single function.
 function Ball:reset()
     self.x = VIRTUAL_WIDTH / 2 - 2
     self.y = VIRTUAL_HEIGHT / 2 - 2
@@ -41,10 +39,8 @@ function Ball:reset()
 end
 
 function Ball:render()
-    -- Set the ball's current color before drawing
     love.graphics.setColor(unpack(self.color))
     love.graphics.rectangle('fill', self.x, self.y, self.width, self.height)
-    -- Reset color to white so it doesn't affect other drawings
     love.graphics.setColor(1, 1, 1, 1)
 end
 
