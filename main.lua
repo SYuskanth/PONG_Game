@@ -3,6 +3,8 @@ Class = require 'class'
 
 require 'Paddle'
 require 'Ball'
+-- CHANGED: Updated to require the new file name
+require 'Celebration'
 
 WINDOW_WIDTH = 1280
 WINDOW_HEIGHT = 720
@@ -18,12 +20,14 @@ function love.load()
     love.window.setTitle('Pong')
     math.randomseed(os.time()) 
 
- 
     backgroundImage = love.graphics.newImage('background.png')
 
     SmallFont = love.graphics.newFont('Press_Start_2P/PressStart2P-Regular.ttf', 8)
-    ScoreFont = love.graphics.newFont('Press_Start_2P/PressStart2P-Regular.ttf', 32)
+    ScoreFont = love.graphics.newFont('Press_Start_2P/PressStart2P-Regular.ttf', 16)
     love.graphics.setFont(SmallFont)
+
+    -- CHANGED: Updated to use the new Celebration() class
+    CelebrationParticles = Celebration()
 
     Push:setupScreen(VIRTUAL_WIDTH, VIRTUAL_HEIGHT, WINDOW_WIDTH, WINDOW_HEIGHT, {
         fullscreen = false,
@@ -34,11 +38,10 @@ function love.load()
     Player1Score = 0
     Player2Score = 0
 
-    --  paddles  colors
+    -- paddles colors
     Player1 = Paddle(10, 30, 5, 20, {95/255, 211/255, 142/255, 1}) 
     Player2 = Paddle(VIRTUAL_WIDTH - 15, VIRTUAL_HEIGHT - 50, 5, 20, {217/255, 87/255, 99/255, 1}) 
     
-
     Ball = Ball(VIRTUAL_WIDTH / 2 - 2, VIRTUAL_HEIGHT / 2 - 2, 4, 4)
 
     servingPlayer = 1
@@ -46,6 +49,11 @@ function love.load()
 end
 
 function love.update(dt)
+    -- ADDED: Update the particles when the game is won
+    if GameState == 'done' then
+        CelebrationParticles:update(dt)
+    end
+
     if GameState == 'serve' then
         Ball.dy = math.random(-50, 50)
         if servingPlayer == 1 then
@@ -55,7 +63,6 @@ function love.update(dt)
         end
 
     elseif GameState == 'play' then
-
         if Ball:collides(Player1) then
             Ball.dx = -Ball.dx * 1.03
             Ball.x = Player1.x + 5
@@ -67,7 +74,6 @@ function love.update(dt)
             Ball.x = Player2.x - 4
             Ball.dy = Ball.dy < 0 and -math.random(10, 150) or math.random(10, 150)
         end
-
 
         if Ball.y <= 0 then
             Ball.y = 0
@@ -86,6 +92,8 @@ function love.update(dt)
             if Player2Score == 10 then
                 winningPlayer = 2
                 GameState = 'done'
+                -- ADDED: Start the celebration!
+                CelebrationParticles:start()
             else
                 Ball:reset()
                 GameState = 'serve'
@@ -98,6 +106,8 @@ function love.update(dt)
             if Player1Score == 10 then
                 winningPlayer = 1
                 GameState = 'done'
+                -- ADDED: Start the celebration!
+                CelebrationParticles:start()
             else
                 Ball:reset()
                 GameState = 'serve'
@@ -116,7 +126,6 @@ function love.update(dt)
     if love.keyboard.isDown('up') then
         Player2.dy = -PADDLE_SPEED
     elseif love.keyboard.isDown('down') then
- 
         Player2.dy = PADDLE_SPEED
     else
         Player2.dy = 0
@@ -139,6 +148,8 @@ function love.keypressed(key)
         elseif GameState == 'serve' then
             GameState = 'play'
         elseif GameState == 'done' then
+            -- ADDED: Stop the confetti when restarting
+            CelebrationParticles:stop()
             Player1Score = 0
             Player2Score = 0
             Ball:reset()
@@ -153,8 +164,19 @@ function love.draw()
 
     local scaleX = VIRTUAL_WIDTH / backgroundImage:getWidth()
     local scaleY = VIRTUAL_HEIGHT / backgroundImage:getHeight()
-
     love.graphics.draw(backgroundImage, 0, 0, 0, scaleX, scaleY)
+
+    -- paddles & ball
+    Player1:render()
+    Player2:render()
+    Ball:render()
+
+    -- ADDED: Draw the confetti if the game is won
+    if GameState == 'done' then
+        CelebrationParticles:draw()
+    end
+    -- Reset color just in case particles left it as something else
+    love.graphics.setColor(1, 1, 1, 1)
 
     love.graphics.setFont(SmallFont)
     if GameState == 'start' then
@@ -162,19 +184,19 @@ function love.draw()
     elseif GameState == 'serve' then
         love.graphics.printf('Player ' .. tostring(servingPlayer) .. "'s serve!", 0, 10, VIRTUAL_WIDTH, 'center')
     elseif GameState == 'done' then
-        love.graphics.printf('Player ' .. tostring(winningPlayer) .. ' wins!', 0, 10, VIRTUAL_WIDTH, 'center')
-        love.graphics.printf('Press Enter to Restart', 0, 30, VIRTUAL_WIDTH, 'center')
+        love.graphics.setFont(ScoreFont)
+        -- MOVED: Changed the Y position from the middle to the top
+        love.graphics.printf('Player ' .. tostring(winningPlayer) .. ' wins!', 0, 20, VIRTUAL_WIDTH, 'center')
+        love.graphics.setFont(SmallFont)
+        love.graphics.printf('Press Enter to Restart', 0, 50, VIRTUAL_WIDTH, 'center')
     end
 
     -- scores
     love.graphics.setFont(ScoreFont)
+    -- FIXED: Changed tstring to tostring
     love.graphics.print(tostring(Player1Score), VIRTUAL_WIDTH / 2 - 50, VIRTUAL_HEIGHT / 3)
+    -- FIXED: Changed tstring to tostring
     love.graphics.print(tostring(Player2Score), VIRTUAL_WIDTH / 2 + 30, VIRTUAL_HEIGHT / 3)
-
-    -- paddles & ball
-    Player1:render()
-    Player2:render()
-    Ball:render()
 
     displayFPS()
     Push:finish()
